@@ -1,10 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { loginSchema } from '../validation/auth.validation';
 
-export default function useAuthForm(defaultValues) {
+export default function useAuthForm(schema, defaultValues) {
   return useForm({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(schema),
     defaultValues,
   });
 }

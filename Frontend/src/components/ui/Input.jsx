@@ -3,18 +3,21 @@ import { mergeClassNames } from '@/utils/helpers';
 
 const Input = forwardRef(function Input({ className = '', label, error, ...props }, ref) {
   return (
-    <label className="grid gap-1 text-sm text-slate-200">
-      {label ? <span>{label}</span> : null}
+    <label className="block space-y-2">
+      {label ? <span className="block text-sm font-medium text-slate-200">{label}</span> : null}
       <input
         ref={ref}
         className={mergeClassNames(
-          'h-11 rounded-xl border border-white/10 bg-white/5 px-4 text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-auraguard-400/60 focus:ring-2 focus:ring-auraguard-400/20',
-          error && 'border-red-400/60 focus:border-red-400/60 focus:ring-red-400/20',
+          'w-full h-10 rounded-lg border bg-slate-950/50 px-3 py-2 text-slate-100 transition-all duration-200',
+          'border-slate-700 placeholder:text-slate-500',
+          'focus:border-auraguard-500 focus:ring-2 focus:ring-auraguard-500/20 focus:outline-none',
+          'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-950/30',
+          error && 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20',
           className,
         )}
         {...props}
       />
-      {error ? <span className="text-xs text-red-300">{error}</span> : null}
+      {error ? <span className="block text-xs font-medium text-red-400">{error}</span> : null}
     </label>
   );
 });

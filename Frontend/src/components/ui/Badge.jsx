@@ -1,13 +1,23 @@
 import { mergeClassNames } from '@/utils/helpers';
 
-export default function Badge({ className = '', tone = 'neutral', children }) {
+export default function Badge({ tone = 'neutral', children, className = '' }) {
   const tones = {
-    neutral: 'bg-white/10 text-slate-200',
-    success: 'bg-emerald-500/15 text-emerald-300',
-    warning: 'bg-amber-500/15 text-amber-300',
-    danger: 'bg-red-500/15 text-red-300',
-    info: 'bg-auraguard-500/15 text-auraguard-200',
+    success: 'bg-green-500/10 text-green-400 border border-green-500/30',
+    warning: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30',
+    error: 'bg-red-500/10 text-red-400 border border-red-500/30',
+    info: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',
+    neutral: 'bg-slate-800/50 text-slate-300 border border-slate-700/50',
   };
 
-  return <span className={mergeClassNames('inline-flex rounded-full px-2.5 py-1 text-xs font-medium', tones[tone], className)}>{children}</span>;
+  return (
+    <span
+      className={mergeClassNames(
+        'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
+        tones[tone],
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
 }

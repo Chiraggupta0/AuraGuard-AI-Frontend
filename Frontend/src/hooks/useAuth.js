@@ -1,11 +1,14 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore } from '@/store/auth.store';
 
 export default function useAuth() {
-  return useAuthStore((state) => ({
-    user: state.user,
-    accessToken: state.accessToken,
-    isAuthenticated: state.isAuthenticated,
-    setAuth: state.setAuth,
-    clearAuth: state.clearAuth,
-  }));
+  return useAuthStore(
+    useShallow((state) => ({
+      user: state.user,
+      isAuthenticated: state.isAuthenticated,
+      isAuthLoading: state.isAuthLoading,
+      setUser: state.setUser,
+      clearAuth: state.clearAuth,
+    })),
+  );
 }

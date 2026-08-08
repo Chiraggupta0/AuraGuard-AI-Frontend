@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button, Card } from '@/components';
 import ROUTES from '@/constants/routes.constants';
-import { FeatureGrid } from '../components/FeatureGrid';
+import { FeatureGrid } from '../components';
 import HeroSection from '../components/HeroSection';
 
 export default function LandingPage() {

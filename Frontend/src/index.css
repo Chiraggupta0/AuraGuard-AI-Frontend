@@ -4,11 +4,10 @@
 
 :root {
   color-scheme: dark;
-  font-family: 'Manrope', 'Segoe UI', sans-serif;
-  background:
-    radial-gradient(circle at top, rgba(13, 135, 234, 0.15), transparent 30%),
-    linear-gradient(180deg, #07111f 0%, #0b1424 55%, #0f172a 100%);
-  color: #e5eef9;
+  font-family: 'Manrope', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at top, rgba(13, 135, 234, 0.1), transparent 35%),
+    linear-gradient(180deg, #05111f 0%, #0a1525 50%, #0d1829 100%);
+  color: #e2e8f0;
 }
 
 html,
@@ -23,6 +22,7 @@ body {
   background: inherit;
   color: inherit;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
@@ -33,6 +33,7 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 button,
@@ -40,4 +41,37 @@ input,
 textarea,
 select {
   font: inherit;
+  border: none;
+  background: none;
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(51, 65, 85);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(71, 85, 105);
+}
+
+/* Focus visible ring */
+:focus-visible {
+  outline: 2px solid rgb(13, 135, 234);
+  outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+  background-color: rgba(13, 135, 234, 0.3);
+  color: inherit;
 }

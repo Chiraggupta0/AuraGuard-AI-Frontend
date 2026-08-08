@@ -1,5 +1,6 @@
 export { default as useAIAlerts } from './useAIAlerts';
 export { default as useAuth } from './useAuth';
+export { default as useAuthListener } from './useAuthListener';
 export { default as useDebounce } from './useDebounce';
 export { default as useLocalStorage } from './useLocalStorage';
 export { default as useMediaStream } from './useMediaStream';
