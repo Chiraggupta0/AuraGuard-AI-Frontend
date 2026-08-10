@@ -8,6 +8,7 @@ import RegisterPage from '@/features/authentication/pages/RegisterPage';
 import DashboardPage from '@/features/dashboard/pages/DashboardPage';
 import CreateRoomPage from '@/features/meetings/pages/CreateRoomPage';
 import JoinRoomPage from '@/features/meetings/pages/JoinRoomPage';
+import MeetingRoom from '@/pages/MeetingRoom';
 import ProfilePage from '@/features/profile/pages/ProfilePage';
 import ReportsPage from '@/features/reports/pages/ReportsPage';
 
@@ -38,6 +39,7 @@ export default function AppRoutes() {
           <Route path={ROUTES.createRoom} element={<CreateRoomPage />} />
           <Route path={ROUTES.joinRoom} element={<JoinRoomPage />} />
         </Route>
+        <Route path="/meeting/:roomName" element={<MeetingRoom />} />
         <Route path={ROUTES.notFound} element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

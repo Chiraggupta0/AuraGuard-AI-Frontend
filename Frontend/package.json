@@ -17,6 +17,7 @@
     "axios": "^1.11.0",
     "firebase": "^12.17.1",
     "framer-motion": "^12.23.0",
+    "livekit-client": "^2.21.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.61.1",

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import env from './env';
-import { useAuthStore } from '@/store/auth.store';
+import { auth } from '@/config/firebase';
 
 const apiClient = axios.create({
   baseURL: env.apiBaseUrl,
@@ -10,14 +10,26 @@ const apiClient = axios.create({
   },
 });
 
-apiClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Async interceptor to add Firebase token to every request
+apiClient.interceptors.request.use(
+  async (config) => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const token = await user.getIdToken();
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('[API] Firebase token added to request');
+      } else {
+        console.log('[API] No Firebase user, request will be unauthenticated');
+      }
+    } catch (error) {
+      console.error('[API] Error getting Firebase token:', error);
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-
-  return config;
-});
+);
 
 export default apiClient;
