@@ -2,11 +2,11 @@ import { mergeClassNames } from '@/utils/helpers';
 
 export default function Badge({ tone = 'neutral', children, className = '' }) {
   const tones = {
-    success: 'bg-green-500/10 text-green-400 border border-green-500/30',
-    warning: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30',
-    error: 'bg-red-500/10 text-red-400 border border-red-500/30',
-    info: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',
-    neutral: 'bg-slate-800/50 text-slate-300 border border-slate-700/50',
+    success: 'bg-green-50 text-green-700 border border-green-200',
+    warning: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
+    error: 'bg-red-50 text-red-700 border border-red-200',
+    info: 'bg-blue-50 text-blue-700 border border-blue-200',
+    neutral: 'bg-slate-100 text-slate-600 border border-slate-200',
   };
 
   return (

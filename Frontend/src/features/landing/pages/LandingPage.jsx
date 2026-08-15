@@ -11,8 +11,8 @@ export default function LandingPage() {
       <FeatureGrid />
       <Card className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-100">Built for moderators, operators, and safety teams</h2>
-          <p className="mt-2 text-sm text-slate-300">AuraGuard AI keeps live meetings safer without disrupting the experience.</p>
+          <h2 className="text-xl font-semibold text-slate-900">Built for moderators, operators, and safety teams</h2>
+          <p className="mt-2 text-sm text-slate-500">AuraGuard AI keeps live meetings safer without disrupting the experience.</p>
         </div>
         <Link to={ROUTES.login}>
           <Button>Enter Dashboard</Button>

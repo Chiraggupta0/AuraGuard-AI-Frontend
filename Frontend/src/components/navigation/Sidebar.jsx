@@ -21,24 +21,24 @@ export default function Sidebar() {
         type="button"
         aria-label="Close sidebar overlay"
         onClick={() => setSidebarOpen(false)}
-        className={`fixed inset-0 z-20 bg-slate-950/40 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
+        className={`fixed inset-0 z-20 bg-slate-900/25 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
           sidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-72 border-r border-slate-800 bg-slate-950/95 p-6 backdrop-blur-xl transition-transform duration-200 ease-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 w-72 border-r border-slate-200 bg-white/85 p-6 backdrop-blur-xl transition-transform duration-200 ease-out lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-white">
-              Aura<span className="text-auraguard-400">Guard</span>
+            <h2 className="text-lg font-bold text-slate-900">
+              Aura<span className="text-auraguard-600">Guard</span>
             </h2>
-            <p className="mt-1 text-xs text-slate-400">Meeting Safety Layer</p>
+            <p className="mt-1 text-xs text-slate-500">Meeting Safety Layer</p>
           </div>
           <Button
             variant="ghost"
@@ -63,8 +63,8 @@ export default function Sidebar() {
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-auraguard-500/10 text-auraguard-300 border border-auraguard-500/20'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'
+                      ? 'bg-auraguard-50 text-auraguard-700 border border-auraguard-200'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`
                 }
               >
@@ -76,9 +76,9 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer hint */}
-        <div className="absolute bottom-6 left-6 right-6 rounded-lg border border-slate-800 bg-slate-900/50 p-3">
-          <p className="text-xs text-slate-400">
-            <span className="font-semibold text-slate-300">Pro Tip:</span> Use keyboard shortcut <kbd className="ml-1 rounded bg-slate-800 px-2 py-1 font-mono text-xs">ESC</kbd> to close this menu.
+        <div className="absolute bottom-6 left-6 right-6 rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <p className="text-xs text-slate-500">
+            <span className="font-semibold text-slate-700">Pro Tip:</span> Use keyboard shortcut <kbd className="ml-1 rounded border border-slate-300 bg-white px-2 py-1 font-mono text-xs text-slate-600">ESC</kbd> to close this menu.
           </p>
         </div>
       </aside>

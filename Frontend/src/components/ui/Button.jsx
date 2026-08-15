@@ -9,9 +9,9 @@ const Button = forwardRef(function Button(
     primary:
       'bg-auraguard-500 text-white hover:bg-auraguard-600 active:bg-auraguard-700 shadow-lg shadow-auraguard-500/20 hover:shadow-xl hover:shadow-auraguard-500/30',
     secondary:
-      'bg-slate-800 text-slate-100 hover:bg-slate-700 active:bg-slate-600 border border-slate-700 hover:border-slate-600',
-    ghost: 'text-slate-300 hover:text-slate-100 hover:bg-white/5 active:bg-white/10',
-    danger: 'bg-red-500/10 text-red-400 hover:bg-red-500/20 active:bg-red-500/30 border border-red-500/20',
+      'bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100 border border-slate-300 hover:border-slate-400',
+    ghost: 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:bg-slate-200',
+    danger: 'bg-red-50 text-red-600 hover:bg-red-100 active:bg-red-200 border border-red-200',
   };
 
   const sizes = {
@@ -25,7 +25,7 @@ const Button = forwardRef(function Button(
       ref={ref}
       className={mergeClassNames(
         'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200',
-        'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-auraguard-500',
+        'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white focus:ring-auraguard-500',
         'disabled:cursor-not-allowed disabled:opacity-50',
         variants[variant],
         sizes[size],

@@ -25,8 +25,8 @@ export default function JoinRoomPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-auraguard-500 border-t-transparent mx-auto mb-4" />
-          <p className="text-slate-300">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-auraguard-600 border-t-transparent mx-auto mb-4" />
+          <p className="text-slate-500">Loading...</p>
         </div>
       </div>
     );
@@ -100,18 +100,18 @@ export default function JoinRoomPage() {
             disabled={isLoading}
           />
 
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500">
             Ask the room creator for the room code. It looks like <code className="font-mono">Aurora-ABC123</code>.
           </p>
 
           {error && (
-            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3">
-              <p className="text-sm text-red-400">{error}</p>
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
         </div>
 
-        <div className="flex gap-3 pt-4 border-t border-slate-800">
+        <div className="flex gap-3 pt-4 border-t border-slate-200">
           <Button onClick={handleJoinRoom} className="flex-1" disabled={isLoading}>
             {isLoading ? 'Joining...' : 'Join Room'}
           </Button>

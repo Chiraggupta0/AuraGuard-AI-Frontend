@@ -11,8 +11,8 @@ export function FeatureGrid() {
     <section className="grid gap-4 md:grid-cols-3">
       {features.map((feature) => (
         <Card key={feature.title}>
-          <h3 className="text-lg font-semibold text-slate-100">{feature.title}</h3>
-          <p className="mt-2 text-sm text-slate-300">{feature.description}</p>
+          <h3 className="text-lg font-semibold text-slate-900">{feature.title}</h3>
+          <p className="mt-2 text-sm text-slate-500">{feature.description}</p>
         </Card>
       ))}
     </section>

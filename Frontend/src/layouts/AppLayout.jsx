@@ -13,11 +13,11 @@ export default function AppLayout() {
   }, [pathname, setSidebarOpen]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen text-slate-800">
       <Sidebar />
       <div className="min-h-screen lg:pl-72">
         <Navbar />
-        <main className="w-full border-t border-slate-800">
+        <main className="w-full border-t border-slate-200/70">
           <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <Outlet />
           </div>

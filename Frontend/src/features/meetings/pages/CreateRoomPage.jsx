@@ -26,8 +26,8 @@ export default function CreateRoomPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-auraguard-500 border-t-transparent mx-auto mb-4" />
-          <p className="text-slate-300">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-auraguard-600 border-t-transparent mx-auto mb-4" />
+          <p className="text-slate-500">Loading...</p>
         </div>
       </div>
     );
@@ -83,11 +83,11 @@ export default function CreateRoomPage() {
       <Card className="space-y-6 max-w-2xl">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-200 mb-3">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
               Room Code
             </label>
             <div className="flex gap-3">
-              <div className="flex-1 rounded-lg border border-slate-700 bg-slate-950/50 px-4 py-3 font-mono text-lg font-semibold text-slate-100">
+              <div className="flex-1 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 font-mono text-lg font-semibold text-slate-900">
                 {roomCode || 'Not generated yet'}
               </div>
               <Button variant="secondary" onClick={handleCopyRoomCode} disabled={!roomCode}>
@@ -105,20 +105,20 @@ export default function CreateRoomPage() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-500">
               Share this code with others so they can join your room. Each code is unique and
               temporary.
             </p>
           </div>
 
           {error && (
-            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3">
-              <p className="text-sm text-red-400">{error}</p>
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
         </div>
 
-        <div className="flex gap-3 pt-4 border-t border-slate-800">
+        <div className="flex gap-3 pt-4 border-t border-slate-200">
           {!roomCode ? (
             <Button onClick={handleGenerateRoom} className="flex-1" disabled={isLoading}>
               {isLoading ? 'Creating...' : 'Generate Room Code'}
@@ -135,7 +135,7 @@ export default function CreateRoomPage() {
           )}
         </div>
 
-        <div className="flex gap-3 pt-2 border-t border-slate-800">
+        <div className="flex gap-3 pt-2 border-t border-slate-200">
           <Button
             onClick={() => navigate(ROUTES.dashboard, { replace: true })}
             variant="ghost"

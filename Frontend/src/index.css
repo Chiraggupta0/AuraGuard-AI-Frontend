@@ -3,11 +3,15 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family: 'Manrope', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: radial-gradient(circle at top, rgba(13, 135, 234, 0.1), transparent 35%),
-    linear-gradient(180deg, #05111f 0%, #0a1525 50%, #0d1829 100%);
-  color: #e2e8f0;
+  /* Soft blue-to-lavender base with two very subtle blurred glows for depth. */
+  background: radial-gradient(900px circle at 12% -5%, rgba(129, 140, 248, 0.16), transparent 45%),
+    radial-gradient(760px circle at 88% 8%, rgba(56, 189, 248, 0.13), transparent 48%),
+    radial-gradient(680px circle at 55% 105%, rgba(167, 139, 250, 0.13), transparent 50%),
+    linear-gradient(165deg, #f8fafc 0%, #eef2ff 52%, #f5f3ff 100%);
+  background-attachment: fixed;
+  color: #1e293b;
 }
 
 html,
@@ -56,12 +60,12 @@ select {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgb(51, 65, 85);
+  background: rgb(203, 213, 225);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgb(71, 85, 105);
+  background: rgb(148, 163, 184);
 }
 
 /* Focus visible ring */

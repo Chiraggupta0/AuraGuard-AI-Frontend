@@ -31,7 +31,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md transition-colors duration-200">
+    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/75 backdrop-blur-md transition-colors duration-200">
       <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4">
           {/* Left section */}
@@ -51,8 +51,8 @@ export default function Navbar() {
                   <FiHome className="h-4 w-4 text-white" />
                 </div>
                 <div className="hidden sm:block">
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{APP_NAME}</p>
-                  <p className="text-sm font-semibold text-slate-100">{pageTitle}</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{APP_NAME}</p>
+                  <p className="text-sm font-semibold text-slate-900">{pageTitle}</p>
                 </div>
               </div>
             </Link>
@@ -62,8 +62,8 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-slate-100">{displayName}</p>
-                <p className="text-xs text-slate-400">{user.email}</p>
+                <p className="text-sm font-medium text-slate-900">{displayName}</p>
+                <p className="text-xs text-slate-500">{user.email}</p>
               </div>
               {user.photoURL ? (
                 <img src={user.photoURL} alt={displayName} className="h-9 w-9 rounded-full object-cover ring-2 ring-auraguard-500/20" />

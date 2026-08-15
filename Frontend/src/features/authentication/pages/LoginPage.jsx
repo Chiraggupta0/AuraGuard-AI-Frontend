@@ -58,7 +58,7 @@ export default function LoginPage() {
     <AuthLayout>
       <AuthFormShell title="Welcome back" subtitle="Sign in to your account">
         {formError ? (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {formError}
           </div>
         ) : null}
@@ -102,9 +102,9 @@ export default function LoginPage() {
         </form>
 
         <div className="relative flex items-center gap-3">
-          <div className="flex-1 border-t border-slate-700" />
+          <div className="flex-1 border-t border-slate-200" />
           <span className="text-xs font-medium text-slate-500">OR</span>
-          <div className="flex-1 border-t border-slate-700" />
+          <div className="flex-1 border-t border-slate-200" />
         </div>
 
         <Button
@@ -118,9 +118,9 @@ export default function LoginPage() {
           {loadingProvider === 'google' ? 'Connecting...' : 'Continue with Google'}
         </Button>
 
-        <p className="text-center text-sm text-slate-400">
+        <p className="text-center text-sm text-slate-500">
           Don't have an account?{' '}
-          <Link to={ROUTES.register} className="font-medium text-auraguard-400 hover:text-auraguard-300 transition-colors">
+          <Link to={ROUTES.register} className="font-medium text-auraguard-600 hover:text-auraguard-700 transition-colors">
             Create one
           </Link>
         </p>

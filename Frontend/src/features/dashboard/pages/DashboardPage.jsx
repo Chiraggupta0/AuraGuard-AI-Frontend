@@ -65,8 +65,8 @@ export default function DashboardPage() {
         <Card className="space-y-6">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-2xl font-bold text-slate-100">Recent Activity</h2>
-              <p className="mt-1 text-slate-400">Your latest meeting sessions and moderation events.</p>
+              <h2 className="text-2xl font-bold text-slate-900">Recent Activity</h2>
+              <p className="mt-1 text-slate-500">Your latest meeting sessions and moderation events.</p>
             </div>
             <Button as={Link} to={ROUTES.reports} variant="secondary">
               View All Reports
@@ -74,20 +74,20 @@ export default function DashboardPage() {
           </div>
 
           {mockRecentActivity.length ? (
-            <div className="space-y-3 border-t border-slate-800 pt-6">
+            <div className="space-y-3 border-t border-slate-200 pt-6">
               {mockRecentActivity.map((item, index) => (
                 <motion.div
                   key={item.id}
-                  className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 rounded-lg border border-slate-800 bg-slate-900/30 p-4 hover:border-slate-700 hover:bg-slate-900/50 transition-all duration-200"
+                  className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 hover:border-slate-300 hover:bg-white transition-all duration-200"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
                   <div className="space-y-1">
-                    <p className="font-semibold text-slate-100">{item.title}</p>
-                    <p className="text-sm text-slate-400">{item.detail}</p>
+                    <p className="font-semibold text-slate-900">{item.title}</p>
+                    <p className="text-sm text-slate-500">{item.detail}</p>
                   </div>
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-widest whitespace-nowrap">
+                  <span className="text-xs font-medium text-slate-400 uppercase tracking-widest whitespace-nowrap">
                     {item.time}
                   </span>
                 </motion.div>
