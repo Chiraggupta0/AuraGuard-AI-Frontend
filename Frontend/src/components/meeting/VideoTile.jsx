@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Track } from 'livekit-client';
 
 export default function VideoTile({ participant, isLocal = false }) {
   const videoRef = useRef(null);
@@ -9,12 +10,22 @@ export default function VideoTile({ participant, isLocal = false }) {
   // is populated once the track is subscribed, so this covers remote too.
   // (There is no `videoTrackSubscriptions` in livekit-client — reading it always
   // yielded undefined, which is why remote tiles stayed on the placeholder.)
-  const firstSubscribedTrack = (publications) => {
+  //
+  // Once screen sharing publishes a second video track for the same
+  // participant, "just take whichever is first" stops being safe — this tile
+  // must always show the camera, never the screen share (that has its own
+  // ScreenShareTile). Preferring `preferredSource` and falling back to the
+  // first available track keeps today's single-track behavior byte-for-byte
+  // identical while disambiguating once a second track exists.
+  const preferredTrack = (publications, preferredSource) => {
     if (!publications || publications.size === 0) return null;
+    let fallback = null;
     for (const publication of publications.values()) {
-      if (publication?.track) return publication.track;
+      if (!publication?.track) continue;
+      if (!fallback) fallback = publication.track;
+      if (publication.source === preferredSource) return publication.track;
     }
-    return null;
+    return fallback;
   };
 
   const videoTrack = (() => {
@@ -24,7 +35,7 @@ export default function VideoTile({ participant, isLocal = false }) {
     }
 
     const pubs = participant.videoTrackPublications;
-    const track = firstSubscribedTrack(pubs);
+    const track = preferredTrack(pubs, Track.Source.Camera);
 
     console.log('[VIDEO] Video track lookup:', {
       identity: participant.identity,
@@ -86,7 +97,7 @@ export default function VideoTile({ participant, isLocal = false }) {
   // Audio for remote participants only — never play back your own mic.
   const audioTrack = (() => {
     if (isLocal || !participant) return null;
-    const track = firstSubscribedTrack(participant.audioTrackPublications);
+    const track = preferredTrack(participant.audioTrackPublications, Track.Source.Microphone);
     console.log('[VIDEO] Remote audio track:', {
       identity: participant.identity,
       found: !!track,
@@ -138,47 +149,64 @@ export default function VideoTile({ participant, isLocal = false }) {
   const showPlaceholder = !isLocal && !videoTrack;
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-slate-900 border border-slate-800">
-      {/* Always render video element for live video */}
-      <video
-        ref={videoRef}
-        autoPlay={true}
-        muted={isLocal}
-        playsInline={true}
-        style={{
-          display: 'block',
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          backgroundColor: '#0f172a',
-        }}
-        onPlay={() => {
-          console.log('[VideoTile] Video playing');
-        }}
-        onError={(e) => {
-          console.error('[VideoTile] Video error:', e);
-        }}
-      />
+    // Outer cell: fills whatever box the grid/flex layout hands this tile —
+    // that sizing is handled upstream (VideoGrid) and is intentionally left
+    // alone here. This wrapper's only job is to CENTER a properly-proportioned
+    // video frame inside that space, so an oddly-shaped cell (e.g. very wide
+    // and short, which is what a single full-width participant gets on a
+    // normal laptop) no longer forces the camera image itself into that same
+    // odd shape.
+    <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-slate-950">
+      {/* The actual video frame: a normal 16:9 box, sized as large as
+          possible while fitting BOTH the available width and height —
+          `aspect-video` fixes the ratio, `h-full` is the preferred sizing
+          axis, and `max-w-full` clamps it back down (recomputing height to
+          match) if the cell is narrow rather than short. `object-fit: cover`
+          on the <video> below now crops within a correctly-shaped frame
+          instead of an arbitrary container shape, so framing looks natural
+          instead of zoomed. */}
+      <div className="relative aspect-video h-full max-w-full overflow-hidden rounded-lg border border-slate-800 bg-slate-900">
+        {/* Always render video element for live video */}
+        <video
+          ref={videoRef}
+          autoPlay={true}
+          muted={isLocal}
+          playsInline={true}
+          style={{
+            display: 'block',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            backgroundColor: '#0f172a',
+          }}
+          onPlay={() => {
+            console.log('[VideoTile] Video playing');
+          }}
+          onError={(e) => {
+            console.error('[VideoTile] Video error:', e);
+          }}
+        />
 
-      {/* Audio for remote participants */}
-      {!isLocal && <audio ref={audioRef} autoPlay playsInline />}
+        {/* Audio for remote participants */}
+        {!isLocal && <audio ref={audioRef} autoPlay playsInline />}
 
-      {/* Placeholder only when no video available */}
-      {showPlaceholder && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
-          <div className="text-center">
-            <div className="mx-auto h-12 w-12 rounded-full bg-gradient-to-br from-auraguard-400 to-auraguard-600 flex items-center justify-center text-white font-bold text-lg">
-              {participantName.charAt(0).toUpperCase()}
+        {/* Placeholder only when no video available */}
+        {showPlaceholder && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
+            <div className="text-center">
+              <div className="mx-auto h-12 w-12 rounded-full bg-gradient-to-br from-auraguard-400 to-auraguard-600 flex items-center justify-center text-white font-bold text-lg">
+                {participantName.charAt(0).toUpperCase()}
+              </div>
+              <p className="mt-2 text-sm font-medium text-slate-200">{participantName}</p>
+              <p className="mt-1 text-xs text-slate-400">Camera off</p>
             </div>
-            <p className="mt-2 text-sm font-medium text-slate-200">{participantName}</p>
-            <p className="mt-1 text-xs text-slate-400">Camera off</p>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Participant label */}
-      <div className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] truncate bg-slate-900/80 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium text-slate-100">
-        {label}
+        {/* Participant label */}
+        <div className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)] truncate bg-slate-900/80 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium text-slate-100">
+          {label}
+        </div>
       </div>
     </div>
   );

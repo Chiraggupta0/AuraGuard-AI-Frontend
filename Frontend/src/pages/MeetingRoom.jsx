@@ -2,11 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Room, RoomEvent } from 'livekit-client';
 import { FiCopy, FiCheck } from 'react-icons/fi';
-import { VideoGrid, MeetingControls } from '@/components/meeting';
+import { VideoGrid, MeetingControls, ChatPanel } from '@/components/meeting';
 import Button from '@/components/ui/Button';
 import ROUTES from '@/constants/routes.constants';
 import useAuth from '@/hooks/useAuth';
 import { joinRoom } from '@/services/roomApi';
+import useLiveKitChat from '@/hooks/useLiveKitChat';
+import useScreenShare from '@/hooks/useScreenShare';
 
 export default function MeetingRoom() {
   const { roomName } = useParams();
@@ -17,7 +19,24 @@ export default function MeetingRoom() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [lastReadChatCount, setLastReadChatCount] = useState(0);
   const roomRef = useRef(null);
+
+  // These read roomRef.current at render time, same pattern VideoGrid/
+  // MeetingControls already use below — a state setter inside the connect
+  // effect triggers the re-render that lets them pick up the real Room
+  // instance once it exists. Neither touches the guarded connect effect.
+  const { messages: chatMessages, sendMessage: sendChatMessage } = useLiveKitChat(roomRef.current);
+  const { isSharing: isScreenSharing, toggle: toggleScreenShare, error: screenShareError } =
+    useScreenShare(roomRef.current);
+
+  useEffect(() => {
+    if (chatOpen) setLastReadChatCount(chatMessages.length);
+  }, [chatOpen, chatMessages.length]);
+
+  const unreadChatCount = chatOpen ? 0 : Math.max(0, chatMessages.length - lastReadChatCount);
+  const handleToggleChat = () => setChatOpen((prev) => !prev);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -254,7 +273,7 @@ export default function MeetingRoom() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
+    <div className="h-screen bg-slate-950 flex flex-col overflow-hidden">
       <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm p-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div>
@@ -282,12 +301,35 @@ export default function MeetingRoom() {
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col gap-4 p-4 overflow-hidden">
-        <div className="flex-1 min-h-0">
-          <VideoGrid remoteParticipants={remoteParticipants} room={roomRef.current} />
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+        <div className="flex-1 flex flex-col gap-4 p-4 min-w-0 min-h-0">
+          <div className="flex-1 min-h-0">
+            <VideoGrid
+              remoteParticipants={remoteParticipants}
+              room={roomRef.current}
+              localScreenSharing={isScreenSharing}
+            />
+          </div>
+
+          {screenShareError && <p className="text-center text-xs text-red-400">{screenShareError}</p>}
+
+          <MeetingControls
+            room={roomRef.current}
+            onLeave={handleLeave}
+            chatOpen={chatOpen}
+            onToggleChat={handleToggleChat}
+            unreadChatCount={unreadChatCount}
+            isScreenSharing={isScreenSharing}
+            onToggleScreenShare={toggleScreenShare}
+          />
         </div>
 
-        <MeetingControls room={roomRef.current} onLeave={handleLeave} />
+        <ChatPanel
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          messages={chatMessages}
+          onSendMessage={sendChatMessage}
+        />
       </div>
 
       <div className="border-t border-slate-800 bg-slate-900/30 p-4">
