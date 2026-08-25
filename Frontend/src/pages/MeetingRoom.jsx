@@ -9,6 +9,7 @@ import useAuth from '@/hooks/useAuth';
 import { joinRoom } from '@/services/roomApi';
 import useLiveKitChat from '@/hooks/useLiveKitChat';
 import useScreenShare from '@/hooks/useScreenShare';
+import useSpeechCapture from '@/hooks/useSpeechCapture';
 
 export default function MeetingRoom() {
   const { roomName } = useParams();
@@ -222,6 +223,16 @@ export default function MeetingRoom() {
       }
     };
   }, [roomName, user, isAuthLoading, navigate]);
+
+  // Phase 4 — speech pipeline. Reads the EXISTING LiveKit mic track that the
+  // effect above already published; captures no new media of its own, and
+  // any failure here is caught internally and logged, never thrown, so it
+  // can't disconnect the meeting or affect video.
+  useSpeechCapture(roomRef.current, {
+    meetingId: roomName,
+    userId: user?.uid,
+    enabled: roomConnected,
+  });
 
   const handleLeave = async () => {
     console.log('[LIVEKIT] Leaving room...');
