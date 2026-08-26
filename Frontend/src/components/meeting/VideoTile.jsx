@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Track } from 'livekit-client';
 
-export default function VideoTile({ participant, isLocal = false }) {
+export default function VideoTile({ participant, isLocal = false, onVideoElementReady = null }) {
   const videoRef = useRef(null);
   const audioRef = useRef(null);
 
@@ -68,6 +68,11 @@ export default function VideoTile({ participant, isLocal = false }) {
 
       videoTrack.attach(videoElement);
 
+      // Hand the already-attached element to a caller that wants to read
+      // frames from it (e.g. vision frame sampling) — same element LiveKit
+      // is already rendering into, no second stream involved.
+      if (isLocal && onVideoElementReady) onVideoElementReady(videoElement);
+
       // Log dimensions after attachment
       setTimeout(() => {
         console.log(`${logPrefix} Track attached - video element state:`, {
@@ -88,10 +93,15 @@ export default function VideoTile({ participant, isLocal = false }) {
         } catch (err) {
           console.error(`${logPrefix} Error detaching track:`, err);
         }
+        if (isLocal && onVideoElementReady) onVideoElementReady(null);
       };
     } catch (err) {
       console.error('[VIDEO] Error attaching track:', err);
     }
+    // onVideoElementReady is intentionally omitted: it's a stable callback from
+    // the parent and including it risks re-running this delicate attach effect
+    // on unrelated parent re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoTrack, participant?.identity, isLocal]);
 
   // Audio for remote participants only — never play back your own mic.

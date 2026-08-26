@@ -8,7 +8,12 @@ import ScreenShareTile from './ScreenShareTile';
 // published/unpublished. Toggling it doesn't change `room.localParticipant`'s
 // reference or the `remoteParticipants` array, so without this dependency the
 // grid would not notice a local screen share until something else re-rendered it.
-export default function VideoGrid({ remoteParticipants = [], room = null, localScreenSharing = false }) {
+export default function VideoGrid({
+  remoteParticipants = [],
+  room = null,
+  localScreenSharing = false,
+  onLocalVideoElement = null,
+}) {
   // Combine local participant + remote participants
   const displayParticipants = useMemo(() => {
     const allParticipants = [];
@@ -101,7 +106,11 @@ export default function VideoGrid({ remoteParticipants = [], room = null, localS
                 key={`${isLocal ? 'local' : 'remote'}-${participant.identity}`}
                 className="h-full w-32 sm:w-40 flex-shrink-0"
               >
-                <VideoTile participant={participant} isLocal={isLocal} />
+                <VideoTile
+                  participant={participant}
+                  isLocal={isLocal}
+                  onVideoElementReady={isLocal ? onLocalVideoElement : null}
+                />
               </div>
             ))}
           </div>
@@ -118,7 +127,11 @@ export default function VideoGrid({ remoteParticipants = [], room = null, localS
           <div className={`grid gap-4 grid-cols-1 md:grid-cols-2 auto-rows-fr ${gridColsClass} h-full`}>
             {displayParticipants.map(({ participant, isLocal }) => (
               <div key={`${isLocal ? 'local' : 'remote'}-${participant.identity}`} className="min-h-0">
-                <VideoTile participant={participant} isLocal={isLocal} />
+                <VideoTile
+                  participant={participant}
+                  isLocal={isLocal}
+                  onVideoElementReady={isLocal ? onLocalVideoElement : null}
+                />
               </div>
             ))}
           </div>

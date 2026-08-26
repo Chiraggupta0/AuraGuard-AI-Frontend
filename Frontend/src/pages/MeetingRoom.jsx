@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Room, RoomEvent } from 'livekit-client';
 import { FiCopy, FiCheck } from 'react-icons/fi';
@@ -9,6 +9,7 @@ import useAuth from '@/hooks/useAuth';
 import { joinRoom } from '@/services/roomApi';
 import useLiveKitChat from '@/hooks/useLiveKitChat';
 import useScreenShare from '@/hooks/useScreenShare';
+import useVisionDetection from '@/hooks/useVisionDetection';
 
 export default function MeetingRoom() {
   const { roomName } = useParams();
@@ -30,6 +31,15 @@ export default function MeetingRoom() {
   const { messages: chatMessages, sendMessage: sendChatMessage } = useLiveKitChat(roomRef.current);
   const { isSharing: isScreenSharing, toggle: toggleScreenShare, error: screenShareError } =
     useScreenShare(roomRef.current);
+
+  // Holds the SAME <video> DOM node VideoTile already attaches the local
+  // LiveKit camera track to (see VideoTile's onVideoElementReady) — no
+  // second camera stream, no second getUserMedia call.
+  const localVideoElRef = useRef(null);
+  const handleLocalVideoElement = useCallback((videoElement) => {
+    localVideoElRef.current = videoElement;
+  }, []);
+  const { result: visionResult } = useVisionDetection(localVideoElRef, { enabled: roomConnected });
 
   useEffect(() => {
     if (chatOpen) setLastReadChatCount(chatMessages.length);
@@ -308,6 +318,7 @@ export default function MeetingRoom() {
               remoteParticipants={remoteParticipants}
               room={roomRef.current}
               localScreenSharing={isScreenSharing}
+              onLocalVideoElement={handleLocalVideoElement}
             />
           </div>
 
@@ -336,6 +347,15 @@ export default function MeetingRoom() {
         <p className="text-xs text-slate-500">
           🔮 <span className="font-semibold">AI Moderator Panel</span> - Coming soon
         </p>
+        {/* TEMPORARY debug indicator for the LiveKit -> Python /detect proof of
+            concept — not the real moderation UI. Safe to remove once the
+            violation engine phase replaces it. */}
+        {visionResult && (
+          <p className="mt-1 text-xs text-slate-500">
+            [VISION debug] persons: {visionResult.detections?.personCount ?? '—'} · phone:{' '}
+            {visionResult.detections?.phoneDetected ? 'YES' : 'NO'}
+          </p>
+        )}
       </div>
     </div>
   );
