@@ -31,9 +31,13 @@ export default [
       'react-refresh': reactRefresh,
     },
     rules: {
+      ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-      'react/prop-types': 'off'
+      'react/prop-types': 'off',
+      // Vite's automatic JSX runtime doesn't require `import React` in scope.
+      'react/react-in-jsx-scope': 'off',
+      'react/jsx-uses-react': 'off',
     },
   },
   prettierConfig,
