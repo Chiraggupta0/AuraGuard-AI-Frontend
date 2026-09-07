@@ -6,10 +6,13 @@ import { VideoGrid, MeetingControls, ChatPanel } from '@/components/meeting';
 import Button from '@/components/ui/Button';
 import ROUTES from '@/constants/routes.constants';
 import useAuth from '@/hooks/useAuth';
-import { joinRoom } from '@/services/roomApi';
+import { joinRoom, validateRoom } from '@/services/roomApi';
 import useLiveKitChat from '@/hooks/useLiveKitChat';
 import useScreenShare from '@/hooks/useScreenShare';
 import useSpeechCapture from '@/hooks/useSpeechCapture';
+import useJoinAdmission from '@/features/meetings/admission/useJoinAdmission';
+import JoinRequestPanel from '@/features/meetings/admission/JoinRequestPanel';
+import WaitingRoomScreen from '@/features/meetings/admission/WaitingRoomScreen';
 
 export default function MeetingRoom() {
   const { roomName } = useParams();
@@ -23,6 +26,40 @@ export default function MeetingRoom() {
   const [chatOpen, setChatOpen] = useState(false);
   const [lastReadChatCount, setLastReadChatCount] = useState(0);
   const roomRef = useRef(null);
+
+  // Host-based admission gate. `isHost` is null while we don't know yet
+  // (backend-computed via GET /rooms/validate/:roomCode — never trusted from
+  // client state), then true/false. Non-hosts request admission and wait for
+  // the host's realtime decision before ever connecting to LiveKit; the host
+  // connects immediately, same as before this feature existed.
+  const [isHost, setIsHost] = useState(null);
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'Guest';
+  const { status: admissionStatus, error: admissionError } = useJoinAdmission(
+    roomName,
+    displayName,
+    isHost === false
+  );
+  const readyToConnect = isHost === true || (isHost === false && admissionStatus === 'approved');
+
+  useEffect(() => {
+    if (isAuthLoading || !user) return undefined;
+    let cancelled = false;
+
+    validateRoom(roomName)
+      .then((room) => {
+        if (!cancelled) setIsHost(Boolean(room?.isHost));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const errorMessage = err.response?.data?.message || err.message || 'Room not found';
+        setError(errorMessage);
+        setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [roomName, user, isAuthLoading]);
 
   // These read roomRef.current at render time, same pattern VideoGrid/
   // MeetingControls already use below — a state setter inside the connect
@@ -45,6 +82,11 @@ export default function MeetingRoom() {
       navigate(ROUTES.login, { replace: true });
       return;
     }
+    // Host connects immediately (isHost === true); a participant only reaches
+    // this point once useJoinAdmission reports 'approved'. Everyone else
+    // (still checking host status, or waiting/rejected) renders
+    // WaitingRoomScreen instead — see the early return in the JSX below.
+    if (!readyToConnect) return;
 
     // React StrictMode runs effects twice in development. Without these guards the
     // first run's connection is orphaned (cleanup fires while the async connect is
@@ -222,7 +264,7 @@ export default function MeetingRoom() {
         roomRef.current = null;
       }
     };
-  }, [roomName, user, isAuthLoading, navigate]);
+  }, [roomName, user, isAuthLoading, navigate, readyToConnect]);
 
   // Phase 4 — speech pipeline. Reads the EXISTING LiveKit mic track that the
   // effect above already published; captures no new media of its own, and
@@ -258,6 +300,13 @@ export default function MeetingRoom() {
     return null;
   }
 
+  // Not the host, and not yet approved: never connects to LiveKit — shows
+  // the waiting/rejected state instead. isHost === null (still checking)
+  // falls through to the isLoading spinner below, same as before.
+  if (isHost === false && admissionStatus !== 'approved') {
+    return <WaitingRoomScreen status={admissionStatus} error={admissionError} />;
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -285,6 +334,7 @@ export default function MeetingRoom() {
 
   return (
     <div className="h-screen bg-slate-950 flex flex-col overflow-hidden">
+      {isHost && <JoinRequestPanel roomCode={roomName} />}
       <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm p-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div>
