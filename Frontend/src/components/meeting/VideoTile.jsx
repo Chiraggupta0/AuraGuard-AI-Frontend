@@ -198,7 +198,7 @@ export default function VideoTile({ participant, isLocal = false, onVideoElement
         />
 
         {/* Audio for remote participants */}
-        {!isLocal && <audio ref={audioRef} autoPlay playsInline />}
+        {!isLocal && <audio ref={audioRef} autoPlay />}
 
         {/* Placeholder only when no video available */}
         {showPlaceholder && (

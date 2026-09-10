@@ -119,7 +119,7 @@ export default function LoginPage() {
         </Button>
 
         <p className="text-center text-sm text-slate-500">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link to={ROUTES.register} className="font-medium text-auraguard-600 hover:text-auraguard-700 transition-colors">
             Create one
           </Link>

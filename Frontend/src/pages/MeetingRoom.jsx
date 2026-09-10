@@ -14,6 +14,9 @@ import useSpeechCapture from '@/hooks/useSpeechCapture';
 import useJoinAdmission from '@/features/meetings/admission/useJoinAdmission';
 import JoinRequestPanel from '@/features/meetings/admission/JoinRequestPanel';
 import WaitingRoomScreen from '@/features/meetings/admission/WaitingRoomScreen';
+import useViolationReporter from '@/features/meetings/violations/useViolationReporter';
+import ViolationHostPopup from '@/features/meetings/violations/ViolationHostPopup';
+import ViolationWarningToast from '@/features/meetings/violations/ViolationWarningToast';
 
 export default function MeetingRoom() {
   const { roomName } = useParams();
@@ -280,9 +283,18 @@ export default function MeetingRoom() {
   // effect above already published; captures no new media of its own, and
   // any failure here is caught internally and logged, never thrown, so it
   // can't disconnect the meeting or affect video.
-  useSpeechCapture(roomRef.current, {
+  const { result: speechResult } = useSpeechCapture(roomRef.current, {
     meetingId: roomName,
     userId: user?.uid,
+    enabled: roomConnected,
+  });
+
+  // Violation Engine integration: forwards the EXISTING vision/speech
+  // results (computed above, unmodified) to the backend, which decides
+  // whether they become a confirmed violation. Adds no detection logic here.
+  const { warning, dismissWarning } = useViolationReporter(roomName, displayName, {
+    visionResult,
+    speechResult,
     enabled: roomConnected,
   });
 
@@ -345,6 +357,8 @@ export default function MeetingRoom() {
   return (
     <div className="h-screen bg-slate-950 flex flex-col overflow-hidden">
       {isHost && <JoinRequestPanel roomCode={roomName} />}
+      {isHost && <ViolationHostPopup roomCode={roomName} />}
+      <ViolationWarningToast warning={warning} onDismiss={dismissWarning} />
       <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm p-4">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div>

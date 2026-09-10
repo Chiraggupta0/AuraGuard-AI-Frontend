@@ -56,6 +56,8 @@ export default function useVisionDetection(videoElementRef, { enabled = true } =
           console.log('[VISION] Detection result:', data);
           console.log('[VISION] Person count:', data?.detections?.personCount);
           console.log('[VISION] Phone detected:', data?.detections?.phoneDetected);
+          console.log('[VISION] Explicit content:', data?.detections?.explicitContent);
+          console.log('[VISION] Camera covered:', data?.detections?.cameraCovered);
           setResult(data);
           setError(null);
         }

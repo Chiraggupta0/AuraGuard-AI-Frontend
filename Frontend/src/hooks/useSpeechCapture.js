@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import env from '@/config/env';
 import { analyzeAudioChunk } from '@/services/speechApi';
 import { useAIDetectionStore } from '@/store/aiDetection.store';
@@ -25,6 +25,11 @@ const pickSupportedMimeType = () => {
  */
 export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
   const pushAlert = useAIDetectionStore((state) => state.pushAlert);
+  // Exposes the latest chunk result the same shape useVisionDetection.js
+  // does ({ result }) — purely additive, so a caller (e.g. the Violation
+  // Engine's reporter hook) can observe it without this hook's own capture
+  // logic changing at all.
+  const [latestResult, setLatestResult] = useState(null);
 
   useEffect(() => {
     if (!enabled || !room || !room.localParticipant) return undefined;
@@ -35,6 +40,42 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
     let chunks = [];
     let isProcessing = false;
 
+    // --- TEMPORARY diagnostics: measures real audio ENERGY on the track via
+    // Web Audio, independent of any enabled/muted flags the browser reports.
+    // Settles definitively whether sound is actually reaching this track.
+    // Safe to remove once the pipeline is confirmed working end-to-end.
+    let audioContext = null;
+    let analyser = null;
+    let analyserData = null;
+    let levelPollId = null;
+    let maxPeakThisChunk = 0;
+
+    const setupLevelMeter = (stream) => {
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        analyserData = new Uint8Array(analyser.frequencyBinCount);
+        source.connect(analyser);
+
+        levelPollId = setInterval(() => {
+          if (!analyser || !analyserData) return;
+          analyser.getByteTimeDomainData(analyserData);
+          let peak = 0;
+          for (let i = 0; i < analyserData.length; i++) {
+            const deviation = Math.abs(analyserData[i] - 128);
+            if (deviation > peak) peak = deviation;
+          }
+          if (peak > maxPeakThisChunk) maxPeakThisChunk = peak;
+        }, 100);
+
+        console.log('[SPEECH][DIAG] Audio level meter attached (0 = dead silence, 128 = full scale)');
+      } catch (error) {
+        console.warn('[SPEECH][DIAG] Could not attach audio level meter:', error.message);
+      }
+    };
+
     console.log('[SPEECH] Audio pipeline initialized');
 
     const getMicPublication = () => {
@@ -43,7 +84,7 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
       return Array.from(pubs.values()).find((pub) => pub.track) ?? null;
     };
 
-    const sendChunk = async (blob) => {
+    const sendChunk = async (blob, peakLevel) => {
       if (isProcessing) {
         console.log('[SPEECH] Previous chunk still processing — skipping this chunk');
         return;
@@ -55,13 +96,23 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
 
       isProcessing = true;
       console.log('[SPEECH] Audio chunk created:', { sizeBytes: blob.size, mimeType: blob.type });
+      console.log(`[SPEECH][DIAG] Max audio level measured during this chunk: ${peakLevel}/128`, {
+        interpretation:
+          peakLevel === 0
+            ? 'DEAD SILENCE reached MediaRecorder — problem is BEFORE Whisper (mic/track/OS level)'
+            : peakLevel < 4
+              ? 'Near-silent — likely background noise floor only, no real speech captured'
+              : 'Real signal detected — problem (if any) is AFTER capture (network/Whisper/decode)',
+      });
       console.log('[SPEECH] Sending audio chunk to Python');
+      const requestStartedAt = performance.now();
 
       try {
         const result = await analyzeAudioChunk({ meetingId, userId, audioBlob: blob });
         if (cleanedUp) return;
 
-        console.log('[SPEECH] Python response received');
+        const elapsedMs = Math.round(performance.now() - requestStartedAt);
+        console.log(`[SPEECH] Python response received (${elapsedMs}ms)`);
         console.log(`[SPEECH] Transcription: "${result.text || ''}"`);
         if (!result.text) console.log('[SPEECH] No speech detected in this chunk');
 
@@ -70,6 +121,7 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
           console.log(`[SPEECH] Matched category: ${result.matched_category}`);
         }
         console.log(`[SPEECH] Gemini: ${result.llm_analyzed ? 'CALLED' : 'SKIPPED'}`);
+        setLatestResult(result);
 
         if (result.flagged) {
           console.log(`[SPEECH] Final result: ${result.type || 'violation'}`);
@@ -92,12 +144,17 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
         }
       } catch (error) {
         if (cleanedUp) return;
+        const elapsedMs = Math.round(performance.now() - requestStartedAt);
         if (error.code === 'ECONNABORTED') {
-          console.warn('[SPEECH] Request to Python timed out — speech analysis skipped for this chunk');
+          console.warn(`[SPEECH] Request to Python timed out after ${elapsedMs}ms — speech analysis skipped for this chunk`);
         } else if (error.response) {
-          console.warn('[SPEECH] Python service returned an error:', error.response.status, error.response.data);
+          console.warn(
+            `[SPEECH] Python service returned an error (${elapsedMs}ms):`,
+            error.response.status,
+            error.response.data
+          );
         } else if (error.request) {
-          console.warn('[SPEECH] Python service unavailable — speech analysis skipped');
+          console.warn(`[SPEECH] Python service unavailable (${elapsedMs}ms) — speech analysis skipped`);
         } else {
           console.warn('[SPEECH] Speech analysis failed:', error.message);
         }
@@ -116,6 +173,7 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
       }
 
       chunks = [];
+      maxPeakThisChunk = 0;
       recorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) chunks.push(event.data);
       };
@@ -125,13 +183,25 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
       recorder.onstop = () => {
         if (cleanedUp) return;
         const blob = new Blob(chunks, { type: recorder.mimeType || mimeType || 'audio/webm' });
+        const peakForThisChunk = maxPeakThisChunk;
         chunks = [];
-        sendChunk(blob);
+        sendChunk(blob, peakForThisChunk);
         beginChunk(stream, mimeType); // continuous coverage — immediately capture the next chunk
       };
 
       recorder.start();
-      console.log(`[SPEECH] Capturing ${env.speechChunkIntervalMs / 1000}-second audio chunk`);
+      const liveTrack = stream.getAudioTracks()[0];
+      console.log(`[SPEECH] Capturing ${env.speechChunkIntervalMs / 1000}-second audio chunk`, {
+        trackEnabled: liveTrack?.enabled,
+        trackMuted: liveTrack?.muted,
+        trackReadyState: liveTrack?.readyState,
+        trackLabel: liveTrack?.label,
+      });
+      if (liveTrack && (liveTrack.readyState !== 'live' || !liveTrack.enabled)) {
+        console.warn(
+          '[SPEECH] Microphone track is not live/enabled — this chunk will be silent. Check the Mic toggle in the meeting UI.'
+        );
+      }
     };
 
     const startCapture = (mediaStreamTrack) => {
@@ -143,6 +213,7 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
 
       const stream = new MediaStream([mediaStreamTrack]);
       console.log('[SPEECH] Starting audio chunk capture');
+      setupLevelMeter(stream);
       beginChunk(stream, mimeType);
 
       intervalId = setInterval(() => {
@@ -155,6 +226,12 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
     const existingPub = getMicPublication();
     if (existingPub) {
       console.log('[SPEECH] LiveKit microphone track found');
+      console.log('[SPEECH][DIAG] LiveKit publication state:', {
+        trackSid: existingPub.trackSid,
+        source: existingPub.source,
+        publicationIsMuted: existingPub.isMuted,
+        kind: existingPub.kind,
+      });
       startCapture(existingPub.track.mediaStreamTrack);
     } else {
       console.log('[SPEECH] LiveKit microphone track not yet available — waiting for it to publish');
@@ -167,13 +244,20 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
       console.log('[SPEECH] LiveKit microphone track found');
       startCapture(publication.track.mediaStreamTrack);
     };
-    room.localParticipant.on('trackPublished', handleTrackPublished);
+    // LocalParticipant emits 'localTrackPublished', NOT the RemoteParticipant-only
+    // 'trackPublished' — confirmed against the installed livekit-client SDK source
+    // (same class of bug already fixed once in useScreenShare.js).
+    room.localParticipant.on('localTrackPublished', handleTrackPublished);
 
     return () => {
       cleanedUp = true;
       console.log('[SPEECH] Cleaning up audio capture');
-      room.localParticipant.off('trackPublished', handleTrackPublished);
+      room.localParticipant.off('localTrackPublished', handleTrackPublished);
       if (intervalId) clearInterval(intervalId);
+      if (levelPollId) clearInterval(levelPollId);
+      if (audioContext) {
+        audioContext.close().catch(() => {});
+      }
       if (recorder && recorder.state !== 'inactive') {
         recorder.onstop = null; // don't send a partial chunk or restart on teardown
         try {
@@ -184,4 +268,6 @@ export default function useSpeechCapture(room, { meetingId, userId, enabled }) {
       }
     };
   }, [room, enabled, meetingId, userId, pushAlert]);
+
+  return { result: latestResult };
 }

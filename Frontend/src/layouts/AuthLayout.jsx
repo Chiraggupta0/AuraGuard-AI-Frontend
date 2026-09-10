@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import ROUTES from '@/constants/routes.constants';
 
 export default function AuthLayout({ children }) {
   return (
