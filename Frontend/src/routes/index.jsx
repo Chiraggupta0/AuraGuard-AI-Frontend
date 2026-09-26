@@ -1,7 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ROUTES from '@/constants/routes.constants';
 import AppLayout from '@/layouts/AppLayout';
-import useAuth from '@/hooks/useAuth';
 import LandingPage from '@/features/landing/pages/LandingPage';
 import LoginPage from '@/features/authentication/pages/LoginPage';
 import RegisterPage from '@/features/authentication/pages/RegisterPage';
@@ -16,19 +15,14 @@ function NotFoundPage() {
   return <Navigate to={ROUTES.dashboard} replace />;
 }
 
-function RootRedirect() {
-  const { isAuthenticated, isAuthLoading } = useAuth();
-
-  if (isAuthLoading) return null;
-
-  return <Navigate to={isAuthenticated ? ROUTES.dashboard : ROUTES.login} replace />;
-}
-
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<RootRedirect />} />
+        {/* Public landing page — the site's default entry point, shown to
+            both signed-out and signed-in visitors (no auth redirect here;
+            its own CTAs route signed-in users straight into the app). */}
+        <Route path="/" element={<LandingPage />} />
         <Route path={ROUTES.landingPage} element={<LandingPage />} />
         <Route path={ROUTES.login} element={<LoginPage />} />
         <Route path={ROUTES.register} element={<RegisterPage />} />
