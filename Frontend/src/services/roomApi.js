@@ -39,6 +39,14 @@ export const validateRoom = async (roomCode) => {
   }
 };
 
+// End the meeting (authenticated, host-only — backend re-verifies room.hostId
+// regardless of what the caller claims). Marks the room ended in MongoDB so
+// its code can never be reused to join/start the old meeting again.
+export const endRoom = async (roomCode) => {
+  const response = await apiClient.post(`/rooms/${roomCode}/end`);
+  return response.data.data;
+};
+
 // Legacy endpoint - generates token with any room (for backward compatibility)
 export const getRoomToken = (roomName, displayName) =>
   apiClient.post('/rooms/token', { roomName, displayName });

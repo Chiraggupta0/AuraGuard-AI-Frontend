@@ -6,7 +6,7 @@ import { VideoGrid, MeetingControls, ChatPanel } from '@/components/meeting';
 import Button from '@/components/ui/Button';
 import ROUTES from '@/constants/routes.constants';
 import useAuth from '@/hooks/useAuth';
-import { joinRoom, validateRoom } from '@/services/roomApi';
+import { joinRoom, validateRoom, endRoom } from '@/services/roomApi';
 import useLiveKitChat from '@/hooks/useLiveKitChat';
 import useScreenShare from '@/hooks/useScreenShare';
 import useVisionDetection from '@/hooks/useVisionDetection';
@@ -300,6 +300,18 @@ export default function MeetingRoom() {
 
   const handleLeave = async () => {
     console.log('[LIVEKIT] Leaving room...');
+    // Host-only, best-effort: ends the meeting for everyone in MongoDB (the
+    // room's code can then never be reused) so it doesn't block leaving if
+    // it fails — the backend independently re-verifies isHost regardless of
+    // this client-side check. Non-hosts leaving never end the meeting.
+    if (isHost) {
+      try {
+        await endRoom(roomName);
+        console.log('[ROOM] Meeting ended');
+      } catch (err) {
+        console.error('[ROOM] Failed to end meeting:', err.message);
+      }
+    }
     if (roomRef.current) {
       try {
         await roomRef.current.disconnect();
